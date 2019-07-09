@@ -12,7 +12,7 @@ import (
 // Service manages interactions with the media library.
 type Service struct {
 	client  *Client
-	session *Session
+	Session *Session
 }
 
 // NewService returns a new instance of a Service that operates on the library
@@ -25,71 +25,71 @@ func NewService(path string) Service {
 
 // Open opens and initializes a new library session.
 func (ls *Service) Open() error {
-	if ls.session != nil {
+	if ls.Session != nil {
 		return fmt.Errorf("library session already opened")
 	}
 	ls.client.Open()
-	ls.session = ls.client.Connect()
+	ls.Session = ls.client.Connect()
 	return nil
 }
 
 // Close closes the current library session.
 func (ls *Service) Close() error {
-	if ls.session == nil {
+	if ls.Session == nil {
 		return fmt.Errorf("no open library session to close")
 	}
 	ls.client.Close()
-	ls.session = nil
+	ls.Session = nil
 	return nil
 }
 
 // CreateLibrary creates library tables in the data source.
 func (ls *Service) CreateLibrary() error {
-	err := ls.session.BeginTx()
+	err := ls.Session.BeginTx()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	_, err = ls.session.genreService.CreateTable()
+	_, err = ls.Session.genreService.CreateTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	_, err = ls.session.artistService.CreateTable()
+	_, err = ls.Session.artistService.CreateTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	_, err = ls.session.albumService.CreateTable()
+	_, err = ls.Session.albumService.CreateTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	_, err = ls.session.songService.CreateTable()
+	_, err = ls.Session.songService.CreateTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	_, err = ls.session.AlbumDiscogService.CreateTable()
+	_, err = ls.Session.AlbumDiscogService.CreateTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	_, err = ls.session.SongDiscogService.CreateTable()
+	_, err = ls.Session.SongDiscogService.CreateTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	err = ls.session.CommitTx()
+	err = ls.Session.CommitTx()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
@@ -98,57 +98,57 @@ func (ls *Service) CreateLibrary() error {
 
 // DeleteLibrary deletes all library data and drops tables from the data source.
 func (ls *Service) DeleteLibrary() error {
-	err := ls.session.BeginTx()
+	err := ls.Session.BeginTx()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	defer ls.session.albumService.Close()
-	defer ls.session.AlbumDiscogService.Close()
-	defer ls.session.artistService.Close()
-	defer ls.session.genreService.Close()
-	defer ls.session.SongDiscogService.Close()
+	defer ls.Session.albumService.Close()
+	defer ls.Session.AlbumDiscogService.Close()
+	defer ls.Session.artistService.Close()
+	defer ls.Session.genreService.Close()
+	defer ls.Session.SongDiscogService.Close()
 
-	_, err = ls.session.genreService.DropTable()
+	_, err = ls.Session.genreService.DropTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	_, err = ls.session.artistService.DropTable()
+	_, err = ls.Session.artistService.DropTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	_, err = ls.session.albumService.DropTable()
+	_, err = ls.Session.albumService.DropTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	_, err = ls.session.songService.DropTable()
+	_, err = ls.Session.songService.DropTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	_, err = ls.session.AlbumDiscogService.DropTable()
+	_, err = ls.Session.AlbumDiscogService.DropTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	_, err = ls.session.SongDiscogService.DropTable()
+	_, err = ls.Session.SongDiscogService.DropTable()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
-	err = ls.session.CommitTx()
+	err = ls.Session.CommitTx()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
@@ -157,9 +157,9 @@ func (ls *Service) DeleteLibrary() error {
 
 // AddPath adds media data within the given path to the library.
 func (ls *Service) AddPath(path string) error {
-	err := ls.session.BeginTx()
+	err := ls.Session.BeginTx()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 
@@ -167,7 +167,7 @@ func (ls *Service) AddPath(path string) error {
 	filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
 		metadata, err := ms.Metadata(path)
 		if err != nil {
-			ls.session.Logger.Println(err)
+			ls.Session.Logger.Println(err)
 		} else {
 			genre := library.GenreAttributes{
 				Name: metadata.Genre}
@@ -197,20 +197,20 @@ func (ls *Service) AddPath(path string) error {
 				Lyrics:      metadata.Lyrics,
 				Comments:    metadata.Comment}
 
-			ls.session.genreService.CreateGenre(&genre)
-			ls.session.artistService.CreateArtist(&artist)
-			ls.session.albumService.CreateAlbum(&album)
-			ls.session.songService.CreateSong(&song)
-			ls.session.AlbumDiscogService.CreateAlbumDiscog(&album)
-			ls.session.SongDiscogService.CreateSongDiscog(&song, &album)
+			ls.Session.genreService.CreateGenre(&genre)
+			ls.Session.artistService.CreateArtist(&artist)
+			ls.Session.albumService.CreateAlbum(&album)
+			ls.Session.songService.CreateSong(&song)
+			ls.Session.AlbumDiscogService.CreateAlbumDiscog(&album)
+			ls.Session.SongDiscogService.CreateSongDiscog(&song, &album)
 		}
 
 		return nil
 	})
 
-	err = ls.session.CommitTx()
+	err = ls.Session.CommitTx()
 	if err != nil {
-		ls.session.Logger.Println(err)
+		ls.Session.Logger.Println(err)
 		return err
 	}
 	return nil
